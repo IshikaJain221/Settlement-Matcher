@@ -1,0 +1,61 @@
+order_id,customer,merchant,product,expected_before,discount_pct,expected_after,order_date
+ORD2001,Aarav Mehta,Myntra,Slim Fit Chinos,1799.0,30,1259.3,2026-06-16
+ORD2002,Arjun Kapoor,Myntra,Slim Fit Chinos,1799.0,10,1619.1,2026-07-08
+ORD2003,Priya Singh,Myntra,Floral Wrap Dress,2499.0,20,1999.2,2026-06-15
+ORD2004,Arjun Kapoor,Myntra,Floral Wrap Dress,2499.0,20,1999.2,2026-07-16
+ORD2005,Sneha Iyer,Myntra,Denim Jacket,3299.0,40,1979.4,2026-07-08
+ORD2006,Rohan Gupta,Myntra,Floral Wrap Dress,2499.0,40,1499.4,2026-06-22
+ORD2007,Ananya Joshi,Nykaa,Skincare Combo Set,1299.0,10,1169.1,2026-06-06
+ORD2008,Ananya Joshi,Flipkart,Cotton Bedsheet Set,1599.0,50,799.5,2026-06-17
+ORD2009,Karan Malhotra,Myntra,Slim Fit Chinos,1799.0,10,1619.1,2026-07-06
+ORD2010,Neha Reddy,Flipkart,Cotton Bedsheet Set,1599.0,20,1279.2,2026-07-16
+ORD2011,Vikram Rao,Nykaa,Skincare Combo Set,1299.0,10,1169.1,2026-06-15
+ORD2012,Vikram Rao,Myntra,Denim Jacket,3299.0,40,1979.4,2026-07-11
+ORD2013,Ananya Joshi,Flipkart,Cotton Bedsheet Set,1599.0,20,1279.2,2026-07-13
+ORD2014,Neha Reddy,Myntra,Slim Fit Chinos,1799.0,20,1439.2,2026-07-05
+ORD2015,Divya Nair,Ajio,Leather Sneakers,3499.0,40,2099.4,2026-06-18
+ORD2016,Ananya Joshi,Nykaa,Skincare Combo Set,1299.0,10,1169.1,2026-06-15
+ORD2017,Vikram Rao,Myntra,Denim Jacket,3299.0,10,2969.1,2026-06-14
+ORD2018,Sneha Iyer,Flipkart,Cotton Bedsheet Set,1599.0,40,959.4,2026-06-26
+ORD2019,Rohan Gupta,Ajio,Formal Shirt,1499.0,30,1049.3,2026-06-09
+ORD2020,Neha Reddy,Amazon,Wireless Earbuds,2999.0,40,1799.4,2026-07-08
+ORD2021,Rohan Gupta,Nykaa,Skincare Combo Set,1299.0,50,649.5,2026-07-02
+ORD2022,Priya Singh,Myntra,Floral Wrap Dress,2499.0,20,1999.2,2026-07-11
+ORD2023,Neha Reddy,Myntra,Denim Jacket,3299.0,10,2969.1,2026-06-25
+ORD2024,Arjun Kapoor,Ajio,Formal Shirt,1499.0,30,1049.3,2026-07-06
+ORD2025,Priya Singh,Myntra,Floral Wrap Dress,2499.0,50,1249.5,2026-06-18
+ORD2026,Vikram Rao,Myntra,Slim Fit Chinos,1799.0,40,1079.4,2026-06-11
+ORD2027,Arjun Kapoor,Amazon,Wireless Earbuds,2999.0,20,2399.2,2026-07-03
+ORD2028,Arjun Kapoor,Amazon,Wireless Earbuds,2999.0,50,1499.5,2026-06-13
+ORD2029,Arjun Kapoor,Ajio,Leather Sneakers,3499.0,50,1749.5,2026-06-01
+ORD2030,Aarav Mehta,Ajio,Formal Shirt,1499.0,10,1349.1,2026-06-24
+ORD2031,Sneha Iyer,Amazon,Wireless Earbuds,2999.0,10,2699.1,2026-06-16
+ORD2032,Priya Singh,Myntra,Slim Fit Chinos,1799.0,40,1079.4,2026-06-05
+ORD2033,Rohan Gupta,Ajio,Leather Sneakers,3499.0,40,2099.4,2026-07-06
+ORD2034,Sneha Iyer,Myntra,Denim Jacket,3299.0,50,1649.5,2026-07-15
+ORD2035,Karan Malhotra,Amazon,Wireless Earbuds,2999.0,30,2099.3,2026-06-29
+ORD2036,Priya Singh,Ajio,Formal Shirt,1499.0,20,1199.2,2026-06-15
+ORD2037,Neha Reddy,Myntra,Floral Wrap Dress,2499.0,50,1249.5,2026-06-15
+ORD2038,Priya Singh,Myntra,Floral Wrap Dress,2499.0,10,2249.1,2026-06-15
+ORD2039,Ananya Joshi,Myntra,Floral Wrap Dress,2499.0,10,2249.1,2026-07-03
+ORD2040,Sneha Iyer,Ajio,Formal Shirt,1499.0,50,749.5,2026-06-09
+ORD2041,Sneha Iyer,Ajio,Formal Shirt,1499.0,40,899.4,2026-06-27
+ORD2042,Karan Malhotra,Myntra,Slim Fit Chinos,1799.0,30,1259.3,2026-06-28
+ORD2043,Priya Singh,Myntra,Floral Wrap Dress,2499.0,10,2249.1,2026-06-26
+ORD2044,Sneha Iyer,Myntra,Slim Fit Chinos,1799.0,20,1439.2,2026-06-13
+ORD2045,Karan Malhotra,Ajio,Leather Sneakers,3499.0,20,2799.2,2026-06-18
+ORD2046,Divya Nair,Myntra,Slim Fit Chinos,1799.0,50,899.5,2026-06-07
+ORD2047,Priya Singh,Myntra,Floral Wrap Dress,2499.0,20,1999.2,2026-06-11
+ORD2048,Sneha Iyer,Ajio,Formal Shirt,1499.0,40,899.4,2026-06-04
+ORD2049,Karan Malhotra,Myntra,Floral Wrap Dress,2499.0,30,1749.3,2026-06-30
+ORD2050,Rohan Gupta,Ajio,Formal Shirt,1499.0,20,1199.2,2026-06-19
+ORD2051,Neha Reddy,Myntra,Floral Wrap Dress,2499.0,50,1249.5,2026-06-04
+ORD2052,Aarav Mehta,Myntra,Floral Wrap Dress,2499.0,50,1249.5,2026-07-01
+ORD2053,Aarav Mehta,Ajio,Leather Sneakers,3499.0,50,1749.5,2026-06-06
+ORD2054,Neha Reddy,Myntra,Slim Fit Chinos,1799.0,10,1619.1,2026-07-14
+ORD2055,Priya Singh,Myntra,Denim Jacket,3299.0,50,1649.5,2026-06-16
+ORD2056,Neha Reddy,Myntra,Floral Wrap Dress,2499.0,10,2249.1,2026-06-27
+ORD2057,Vikram Rao,Flipkart,Cotton Bedsheet Set,1599.0,20,1279.2,2026-07-13
+ORD2058,Vikram Rao,Nykaa,Skincare Combo Set,1299.0,40,779.4,2026-06-09
+ORD2059,Divya Nair,Amazon,Wireless Earbuds,2999.0,30,2099.3,2026-06-05
+ORD2060,Priya Singh,Myntra,Slim Fit Chinos,1799.0,50,899.5,2026-06-14

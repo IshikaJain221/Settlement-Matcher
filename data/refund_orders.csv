@@ -1,0 +1,51 @@
+order_id,customer,refund_amount,reason,refund_approved_date
+ORD3001,Priya Singh,541.6,Order cancelled,2026-06-18
+ORD3002,Priya Singh,6862.99,Product returned,2026-07-05
+ORD3003,Aarav Mehta,588.03,Order cancelled,2026-06-14
+ORD3004,Aarav Mehta,5743.08,Duplicate order,2026-07-16
+ORD3005,Divya Nair,6014.88,Order cancelled,2026-06-01
+ORD3006,Ananya Joshi,2994.35,Damaged item,2026-06-14
+ORD3007,Karan Malhotra,1237.15,Duplicate order,2026-06-23
+ORD3008,Aarav Mehta,7377.4,Product returned,2026-07-05
+ORD3009,Priya Singh,5653.79,Duplicate order,2026-07-11
+ORD3010,Neha Reddy,2164.2,Product returned,2026-06-05
+ORD3011,Vikram Rao,9855.65,Product returned,2026-06-15
+ORD3012,Divya Nair,6465.14,Order cancelled,2026-06-24
+ORD3013,Sneha Iyer,6799.7,Product returned,2026-07-15
+ORD3014,Rohan Gupta,5480.16,Order cancelled,2026-06-16
+ORD3015,Vikram Rao,9897.38,Duplicate order,2026-07-11
+ORD3016,Ananya Joshi,8474.66,Order cancelled,2026-06-04
+ORD3017,Karan Malhotra,2896.09,Duplicate order,2026-06-14
+ORD3018,Sneha Iyer,6656.76,Wrong item delivered,2026-06-26
+ORD3019,Rohan Gupta,2691.29,Duplicate order,2026-07-06
+ORD3020,Neha Reddy,4454.81,Wrong item delivered,2026-07-08
+ORD3021,Rohan Gupta,5241.41,Product returned,2026-06-06
+ORD3022,Rohan Gupta,7982.17,Duplicate order,2026-06-28
+ORD3023,Karan Malhotra,6079.12,Duplicate order,2026-06-30
+ORD3024,Arjun Kapoor,8648.56,Product returned,2026-06-01
+ORD3025,Arjun Kapoor,7582.51,Damaged item,2026-07-12
+ORD3026,Karan Malhotra,1833.13,Damaged item,2026-06-01
+ORD3027,Arjun Kapoor,9151.49,Damaged item,2026-07-11
+ORD3028,Sneha Iyer,1781.54,Duplicate order,2026-06-11
+ORD3029,Neha Reddy,3443.31,Product returned,2026-06-02
+ORD3030,Sneha Iyer,860.87,Product returned,2026-07-07
+ORD3031,Divya Nair,8214.43,Order cancelled,2026-07-05
+ORD3032,Divya Nair,9483.43,Damaged item,2026-06-11
+ORD3033,Neha Reddy,4403.44,Duplicate order,2026-06-14
+ORD3034,Vikram Rao,4169.23,Damaged item,2026-07-13
+ORD3035,Arjun Kapoor,4678.42,Order cancelled,2026-06-16
+ORD3036,Aarav Mehta,6005.59,Duplicate order,2026-06-15
+ORD3037,Priya Singh,7165.06,Order cancelled,2026-06-04
+ORD3038,Aarav Mehta,8637.46,Duplicate order,2026-06-05
+ORD3039,Divya Nair,2377.1,Duplicate order,2026-06-09
+ORD3040,Sneha Iyer,7909.81,Order cancelled,2026-06-27
+ORD3041,Karan Malhotra,3735.69,Wrong item delivered,2026-06-27
+ORD3042,Priya Singh,886.94,Product returned,2026-06-22
+ORD3043,Sneha Iyer,5500.97,Wrong item delivered,2026-06-09
+ORD3044,Divya Nair,2722.12,Wrong item delivered,2026-06-05
+ORD3045,Priya Singh,789.71,Product returned,2026-07-05
+ORD3046,Rohan Gupta,4241.22,Order cancelled,2026-07-01
+ORD3047,Rohan Gupta,3975.04,Damaged item,2026-06-25
+ORD3048,Vikram Rao,4402.17,Wrong item delivered,2026-07-06
+ORD3049,Vikram Rao,2410.7,Duplicate order,2026-06-04
+ORD3050,Aarav Mehta,7554.36,Product returned,2026-06-04
