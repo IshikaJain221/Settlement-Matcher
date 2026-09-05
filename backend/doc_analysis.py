@@ -200,8 +200,10 @@ def build_analysis(transactions: List[Dict]) -> Dict:
 
     by_category = defaultdict(float)
     for t in transactions:
-        if t["amount"] < 0:  # only spending goes into the category breakdown
-            by_category[t["category"]] += -t["amount"]
+        # Use absolute value so a category chart isn't empty just because a
+        # document is all incoming money (e.g. a settlements file) — this
+        # shows category weight regardless of direction, not just spending.
+        by_category[t["category"]] += abs(t["amount"])
     category_breakdown = [{"category": k, "amount": round(v, 2)} for k, v in
                            sorted(by_category.items(), key=lambda x: -x[1])]
 
