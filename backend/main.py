@@ -296,23 +296,36 @@ def chat_with_document(doc_id: str, req: DocQARequest):
     if not req.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    # Aggregate questions (profit, loss, totals, categories) are answered
-    # directly from the full computed analysis — accurate across every
-    # transaction, not a guess from a handful of retrieved chunks.
-    intent = _classify_aggregate_intent(req.question)
-    if intent:
-        doc = _ensure_analysis(doc_id)
-        answer = _answer_from_analysis(intent, doc["analysis"])
-        return {"answer": answer, "retrieval_method": "computed_analysis", "chunks_used": 0}
+    try:
+        # Aggregate questions (profit, loss, totals, categories) are answered
+        # directly from the full computed analysis — accurate across every
+        # transaction, not a guess from a handful of retrieved chunks.
+        intent = _classify_aggregate_intent(req.question)
+        if intent:
+            doc = _ensure_analysis(doc_id)
+            answer = _answer_from_analysis(intent, doc["analysis"])
+            return {"answer": answer, "retrieval_method": "computed_analysis", "chunks_used": 0}
 
-    # Everything else (specific line items, "what did I buy on X") still
-    # uses chunk retrieval — deduplicated, since overlapping chunks or
-    # repeated rows in the source document can otherwise surface the same
-    # line multiple times and pad out the context with redundant text.
-    top_chunks, method, matched = retrieve(req.question, doc["chunks"], doc["embeddings"])
-    top_chunks = list(dict.fromkeys(top_chunks))  # dedupe while preserving order
-    answer = generate_answer(req.question, top_chunks, method, matched)
-    return {"answer": answer, "retrieval_method": method, "chunks_used": len(top_chunks) if matched else 0}
+        # Everything else (specific line items, "what did I buy on X") still
+        # uses chunk retrieval — deduplicated, since overlapping chunks or
+        # repeated rows in the source document can otherwise surface the same
+        # line multiple times and pad out the context with redundant text.
+        top_chunks, method, matched = retrieve(req.question, doc["chunks"], doc["embeddings"])
+        top_chunks = list(dict.fromkeys(top_chunks))  # dedupe while preserving order
+        answer = generate_answer(req.question, top_chunks, method, matched)
+        return {"answer": answer, "retrieval_method": method, "chunks_used": len(top_chunks) if matched else 0}
+    except Exception:
+        # Never let an unexpected error surface as a raw 500 — but DO print
+        # the full traceback server-side, so it shows up in the terminal
+        # running uvicorn and can be diagnosed instead of silently swallowed.
+        import traceback
+        print("--- /chat error ---")
+        traceback.print_exc()
+        return {
+            "answer": "Something went wrong answering that on my end. Try rephrasing, or ask about "
+                      "profit, loss, biggest expense, or category breakdown.",
+            "retrieval_method": "error", "chunks_used": 0,
+        }
 
 
 @app.get("/api/documents/{doc_id}/analysis")
