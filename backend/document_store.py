@@ -17,7 +17,7 @@ _store: Dict[str, dict] = {}
 
 
 def create_document(filename: str, text: str, chunks: List[str],
-                     embeddings: Optional[List[List[float]]]) -> str:
+                     embeddings: Optional[List[List[float]]], csv_rows: Optional[List[dict]] = None) -> str:
     doc_id = str(uuid.uuid4())[:8]
     _store[doc_id] = {
         "doc_id": doc_id,
@@ -25,6 +25,7 @@ def create_document(filename: str, text: str, chunks: List[str],
         "text": text,
         "chunks": chunks,
         "embeddings": embeddings,
+        "csv_rows": csv_rows,        # structured columns, when the upload was a CSV
         "analysis": None,       # filled in lazily on first analysis request
         "transactions": None,
     }
