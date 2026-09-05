@@ -33,12 +33,87 @@ class TransactionList(BaseModel):
     transactions: List[Transaction]
 
 
-_AMOUNT_RE = re.compile(r"([+-])?\s*[₹$]\s?[-]?[\d,]+\.?\d*|[-]?[\d,]+\.\d{2}\b")
+_AMOUNT_RE = re.compile(r"[₹$]\s?[-]?[\d,]+\.?\d*|[-]?[\d,]+\.\d{2}\b")
 _DATE_RE = re.compile(r"\b(\d{4}-\d{2}-\d{2}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\b")
 
 
-def extract_transactions(text: str) -> Dict:
-    """Returns {"transactions": [...], "method": "gemini_llm" | "regex_fallback"}"""
+_AMOUNT_ALIASES = ["amount", "settled_amount", "amt", "transaction_amount", "settlement_amount"]
+_DATE_ALIASES = ["date", "settlement_date", "order_date", "transaction_date", "billing_date"]
+_CATEGORY_ALIASES = ["category", "transaction_category", "exception_type"]
+_DESC_ALIASES = ["description", "narration", "merchant", "product", "order_ref"]
+
+
+def _find_column(row: dict, aliases: List[str]) -> Optional[str]:
+    """Case-insensitive column lookup — real-world CSVs are inconsistent
+    about capitalization (Amount vs amount vs AMOUNT)."""
+    lower_map = {k.lower(): k for k in row.keys()}
+    for alias in aliases:
+        if alias in lower_map:
+            return lower_map[alias]
+    return None
+
+
+def extract_transactions_from_csv_rows(rows: List[dict]) -> Dict:
+    """Reads transactions directly from known CSV columns — no regex
+    guessing, no LLM call needed. Used whenever the upload is a CSV with
+    a recognizable schema, since the structure is already known and
+    trustworthy; falls back to the regex/LLM path only if no amount
+    column can be found at all."""
+    if not rows:
+        return {"transactions": [], "method": "csv_columns"}
+
+    amount_col = _find_column(rows[0], _AMOUNT_ALIASES)
+    if amount_col is None:
+        return {"transactions": [], "method": "csv_columns"}  # caller falls back
+
+    date_col = _find_column(rows[0], _DATE_ALIASES)
+    category_col = _find_column(rows[0], _CATEGORY_ALIASES)
+    desc_col = _find_column(rows[0], _DESC_ALIASES)
+
+    transactions = []
+    for row in rows:
+        raw_amount = (row.get(amount_col) or "").replace(",", "").replace("₹", "").replace("$", "").strip()
+        try:
+            amount = float(raw_amount)
+        except ValueError:
+            continue
+        description = (row.get(desc_col) if desc_col else None) or "Transaction"
+        transactions.append({
+            "date": row.get(date_col, "") if date_col else "",
+            "description": str(description)[:80],
+            "amount": amount,   # sign taken exactly as given in the file — not assumed
+            "category": (row.get(category_col) if category_col else None) or _guess_category(str(description)),
+        })
+
+    return {"transactions": _dedupe(transactions), "method": "csv_columns"}
+
+
+def _dedupe(transactions: List[Dict]) -> List[Dict]:
+    """Drops exact-duplicate transactions (same date + description + amount).
+    A legitimate statement won't have byte-identical repeated lines — but a
+    glitchy export or a stress-test file very well might, and duplicates
+    silently multiply every total by however many times they repeat."""
+    seen = set()
+    deduped = []
+    for t in transactions:
+        key = (t["date"], t["description"], t["amount"])
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(t)
+    return deduped
+
+
+def extract_transactions(text: str, csv_rows: Optional[List[dict]] = None) -> Dict:
+    """Returns {"transactions": [...], "method": "csv_columns" | "gemini_llm" | "regex_fallback"}"""
+    # CSV with a recognizable schema: read it directly. Deterministic, free,
+    # and more accurate than re-parsing already-structured data with regex.
+    if csv_rows:
+        result = extract_transactions_from_csv_rows(csv_rows)
+        if result["transactions"]:
+            return result
+        # no amount column found — fall through to the general-purpose paths below
+
     client = _get_client()
 
     if client is not None:
@@ -62,11 +137,11 @@ def extract_transactions(text: str) -> Dict:
                 ),
             )
             parsed = TransactionList.model_validate_json(response.text)
-            return {"transactions": [t.model_dump() for t in parsed.transactions], "method": "gemini_llm"}
+            return {"transactions": _dedupe([t.model_dump() for t in parsed.transactions]), "method": "gemini_llm"}
         except Exception:
             pass  # fall through to regex fallback below
 
-    return {"transactions": _regex_fallback(text), "method": "regex_fallback"}
+    return {"transactions": _dedupe(_regex_fallback(text)), "method": "regex_fallback"}
 
 
 _CATEGORY_KEYWORDS = {
@@ -100,28 +175,11 @@ def _regex_fallback(text: str) -> List[Dict]:
         if not amount_match:
             continue
         date_match = _DATE_RE.search(line)
-        full_match = amount_match.group()
-        # Capture the sign prefix (group 1) before the currency symbol
-        sign_prefix = amount_match.group(1) if amount_match.lastindex and amount_match.group(1) else ""
-        amount_str = full_match.replace("₹", "").replace("$", "").replace(",", "").replace("+", "").replace("-", "").strip()
+        amount_str = amount_match.group().replace("₹", "").replace("$", "").replace(",", "").strip()
         try:
             amount = float(amount_str)
         except ValueError:
             continue
-        # Apply sign: explicit '-' prefix or '-' embedded in the raw match means debit
-        if sign_prefix == "-" or (not sign_prefix and "-" in full_match):
-            amount = -abs(amount)
-        elif sign_prefix == "+":
-            amount = abs(amount)
-        # If no sign info at all, use keyword heuristics to guess debit vs credit
-        else:
-            line_lower = line.lower()
-            debit_keywords = ["debit", "dr", "withdrawal", "payment", "charge", "spent", "paid"]
-            credit_keywords = ["credit", "cr", "deposit", "salary", "refund", "received", "income"]
-            if any(k in line_lower for k in debit_keywords):
-                amount = -abs(amount)
-            elif any(k in line_lower for k in credit_keywords):
-                amount = abs(amount)
         description = line[:amount_match.start()].strip(" |:-")
         if date_match:
             description = description.replace(date_match.group(), "").strip(" |:-")
@@ -165,64 +223,6 @@ def build_analysis(transactions: List[Dict]) -> Dict:
         "monthly_trend": monthly_trend,
         "top_transactions": top_transactions,
     }
-
-
-_CATEGORY_ALIASES = {
-    "food": "Food", "swiggy": "Food", "zomato": "Food", "grocery": "Food",
-    "shopping": "Shopping", "amazon": "Shopping", "flipkart": "Shopping",
-    "utilities": "Utilities", "utility": "Utilities", "bill": "Utilities",
-    "rent": "Rent", "transport": "Transport", "cab": "Transport", "fuel": "Transport",
-    "entertainment": "Entertainment", "netflix": "Entertainment",
-    "health": "Health & Fitness", "fitness": "Health & Fitness", "gym": "Health & Fitness",
-    "income": "Income", "salary": "Income",
-}
-
-
-def answer_financial_question(question: str, analysis: Dict, transactions: List[Dict]) -> Optional[str]:
-    """Answers common bank-statement questions directly from the already
-    -computed analysis/transactions, so the chat gives a precise number
-    instead of dumping raw retrieved text. Returns None if the question
-    doesn't match a known pattern, so the caller can fall back to RAG."""
-    q = question.lower()
-    total_out = analysis.get("total_out", 0)
-
-    for alias, category in _CATEGORY_ALIASES.items():
-        if alias in q:
-            match = next((c for c in analysis["category_breakdown"] if c["category"] == category), None)
-            if match:
-                pct = round((match["amount"] / total_out) * 100, 1) if total_out else 0
-                return f"You spent \u20b9{match['amount']:,.2f} on {category} \u2014 {pct}% of your total spending (\u20b9{total_out:,.2f})."
-            return f"I didn't find any {category} transactions in this document."
-
-    if any(w in q for w in ["biggest expense", "largest expense", "highest expense", "biggest transaction"]):
-        expenses = [t for t in transactions if t["amount"] < 0]
-        if not expenses:
-            return "No expenses found in this document."
-        biggest = min(expenses, key=lambda t: t["amount"])
-        return f"Your biggest expense was \u20b9{abs(biggest['amount']):,.2f} \u2014 {biggest['description']} ({biggest['category']})."
-
-    if any(w in q for w in ["category", "categories", "breakdown by category"]):
-        if not analysis["category_breakdown"]:
-            return "No categorized spending found in this document."
-        lines = ["Spending by category:"]
-        for c in analysis["category_breakdown"]:
-            pct = round((c["amount"] / total_out) * 100, 1) if total_out else 0
-            lines.append(f"- {c['category']}: \u20b9{c['amount']:,.2f} ({pct}%)")
-        return "\n".join(lines)
-
-    if any(w in q for w in ["net", "profit", "loss"]):
-        net = analysis.get("net", 0)
-        verdict = "profit" if net >= 0 else "loss"
-        return (f"Net {verdict}: \u20b9{abs(net):,.2f} (money in \u20b9{analysis['total_in']:,.2f} "
-                f"minus money out \u20b9{total_out:,.2f}).")
-
-    if any(w in q for w in ["total spend", "total spending", "how much did i spend", "total expense", "money out"]):
-        return f"Total spending: \u20b9{total_out:,.2f} across {analysis['total_transactions']} transactions."
-
-    if any(w in q for w in ["total income", "money in", "how much did i earn", "total credit"]):
-        return f"Total money in: \u20b9{analysis['total_in']:,.2f}."
-
-    return None
 
 
 def _safe_month(date_str: str) -> Optional[str]:
