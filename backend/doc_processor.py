@@ -12,6 +12,17 @@ import io
 from typing import List
 
 
+def extract_csv_rows(raw_bytes: bytes) -> List[dict]:
+    """Returns the CSV as structured dict rows (column name -> value),
+    preserving the original schema. Used by doc_analysis so a CSV with
+    known columns (amount, date, category, etc.) can be read directly
+    instead of being flattened to text and re-parsed with regex —
+    more accurate, and needs no LLM call at all."""
+    text = raw_bytes.decode("utf-8", errors="ignore")
+    reader = csv.DictReader(io.StringIO(text))
+    return list(reader)
+
+
 def extract_text(filename: str, raw_bytes: bytes) -> str:
     """Dispatches on file extension. Returns plain text either way,
     so everything downstream (chunking, embedding, analysis) doesn't
