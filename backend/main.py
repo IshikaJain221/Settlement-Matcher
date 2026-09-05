@@ -28,7 +28,7 @@ from repository import DataRepository
 from matchers import build_default_pipeline
 from scenario_matchers import SCENARIO_REGISTRY
 from qa import answer_question, suggested_questions
-from doc_processor import extract_text, chunk_text
+from doc_processor import extract_text, chunk_text, extract_csv_rows
 from doc_rag import embed_chunks, retrieve, generate_answer
 from doc_analysis import extract_transactions, build_analysis
 import document_store
@@ -190,7 +190,8 @@ async def upload_document(file: UploadFile = File(...)):
     chunks = chunk_text(text)
     embeddings = embed_chunks(chunks)  # None if Gemini unavailable — retrieve() falls back cleanly
 
-    doc_id = document_store.create_document(file.filename, text, chunks, embeddings)
+    csv_rows = extract_csv_rows(raw_bytes) if file.filename.lower().endswith(".csv") else None
+    doc_id = document_store.create_document(file.filename, text, chunks, embeddings, csv_rows)
     return {
         "doc_id": doc_id,
         "filename": file.filename,
@@ -211,7 +212,7 @@ def _ensure_analysis(doc_id: str) -> dict:
     never re-derived differently in two places."""
     doc = document_store.get_document(doc_id)
     if doc["analysis"] is None:
-        extraction = extract_transactions(doc["text"])
+        extraction = extract_transactions(doc["text"], doc.get("csv_rows"))
         analysis = build_analysis(extraction["transactions"])
         document_store.set_analysis(doc_id, extraction["transactions"], analysis, extraction["method"])
         doc = document_store.get_document(doc_id)
