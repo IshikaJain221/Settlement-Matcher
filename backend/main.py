@@ -309,10 +309,10 @@ def chat_with_document(doc_id: str, req: DocQARequest):
     # uses chunk retrieval — deduplicated, since overlapping chunks or
     # repeated rows in the source document can otherwise surface the same
     # line multiple times and pad out the context with redundant text.
-    top_chunks, method = retrieve(req.question, doc["chunks"], doc["embeddings"])
+    top_chunks, method, matched = retrieve(req.question, doc["chunks"], doc["embeddings"])
     top_chunks = list(dict.fromkeys(top_chunks))  # dedupe while preserving order
-    answer = generate_answer(req.question, top_chunks, method)
-    return {"answer": answer, "retrieval_method": method, "chunks_used": len(top_chunks)}
+    answer = generate_answer(req.question, top_chunks, method, matched)
+    return {"answer": answer, "retrieval_method": method, "chunks_used": len(top_chunks) if matched else 0}
 
 
 @app.get("/api/documents/{doc_id}/analysis")
