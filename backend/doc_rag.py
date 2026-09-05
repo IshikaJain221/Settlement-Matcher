@@ -60,15 +60,19 @@ def _cosine(a: List[float], b: List[float]) -> float:
 
 
 def retrieve(query: str, chunks: List[str], embeddings: Optional[List[List[float]]],
-             top_k: int = 4) -> Tuple[List[str], str]:
-    """Returns (top_chunks, method_used). method_used is 'gemini_embeddings'
-    or 'keyword_overlap' — surfaced to the user so retrieval quality is honest."""
+             top_k: int = 4) -> Tuple[List[str], str, bool]:
+    """Returns (top_chunks, method_used, matched). `matched` is False when
+    nothing genuinely relevant was found — callers should treat that as an
+    off-topic or unanswerable question rather than forcing an answer from
+    unrelated content."""
     if embeddings is not None:
         q_vec = embed_query(query)
         if q_vec is not None:
             scored = [(chunk, _cosine(q_vec, emb)) for chunk, emb in zip(chunks, embeddings)]
             scored.sort(key=lambda x: x[1], reverse=True)
-            return [c for c, _ in scored[:top_k]], "gemini_embeddings"
+            top = scored[:top_k]
+            matched = bool(top) and top[0][1] >= 0.5  # similarity threshold — below this, treat as no real match
+            return [c for c, _ in top], "gemini_embeddings", matched
 
     # Fallback: keyword overlap (Jaccard-ish) — no network call needed at all
     q_tokens = _tokenize(query)
@@ -79,15 +83,30 @@ def retrieve(query: str, chunks: List[str], embeddings: Optional[List[List[float
         scored.append((chunk, overlap))
     scored.sort(key=lambda x: x[1], reverse=True)
     top = [c for c, score in scored[:top_k] if score > 0]
+    matched = len(top) > 0
     if not top:
-        top = chunks[:top_k]  # nothing matched — just return the first few chunks as context
-    return top, "keyword_overlap"
+        top = chunks[:top_k]  # still give the caller something, but flagged as unmatched
+    return top, "keyword_overlap", matched
 
 
-def generate_answer(question: str, context_chunks: List[str], retrieval_method: str) -> str:
-    """Generates a grounded answer from the retrieved chunks. Falls back to
-    returning the most relevant chunk directly if Gemini generation fails —
-    still grounded, just not synthesized into a full sentence."""
+_SUGGESTIONS_MESSAGE = (
+    "I couldn't find anything relevant to that in the document. Try asking things like:\n"
+    "- \"What's my total profit or loss?\"\n"
+    "- \"What was my biggest expense?\"\n"
+    "- \"Show me the category breakdown\"\n"
+    "- Or mention a specific date, amount, or order/transaction ID from the document."
+)
+
+
+def generate_answer(question: str, context_chunks: List[str], retrieval_method: str, matched: bool = True) -> str:
+    """Generates a grounded answer from the retrieved chunks. If nothing
+    relevant matched, or generation genuinely fails, returns a friendly
+    suggestions message instead of a raw error or an unrelated excerpt —
+    and skips the Gemini call entirely when there's no real match, since
+    there's nothing worth spending a call on."""
+    if not matched:
+        return _SUGGESTIONS_MESSAGE
+
     context = "\n\n---\n\n".join(context_chunks)
     client = _get_client()
 
@@ -103,6 +122,7 @@ def generate_answer(question: str, context_chunks: List[str], retrieval_method: 
     try:
         response = client.models.generate_content(model=_GEMINI_MODEL, contents=prompt)
         return response.text.strip()
-    except Exception as e:
-        snippet = context_chunks[0][:400] if context_chunks else "No relevant content found."
-        return f"(generation failed: {type(e).__name__} — showing retrieved excerpt instead)\n\n{snippet}"
+    except Exception:
+        # Don't surface raw exception details to the user — a clean,
+        # actionable message is more useful than a technical error string.
+        return _SUGGESTIONS_MESSAGE
